@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Driver / Parent</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: #7eb8f3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .form-container {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #111827;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      margin-top: 20px;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #374151;
+    }
+    input, select {
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+    small {
+      color: #6b7280;
+      font-size: 13px;
+      margin-top: 4px;
+      display: block;
+    }
+    button {
+      margin-top: 30px;
+      padding: 14px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    button:hover {
+      background-color: #1d4ed8;
+    }
+    .back-link {
+      display: block;
+      margin-top: 20px;
+      text-align: center;
+      text-decoration: none;
+      color: #2563eb;
+      font-weight: 500;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>Add Driver / Parent</h2>
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}
+          <small>{{ field.help_text }}</small>
+        {% endif %}
+        {% if field.name == "password" or field.name == "password1" %}
+          <small id="password-hint">Password must be at least 8 characters, include a number and a symbol.</small>
+        {% endif %}
+        {% for error in field.errors %}
+          <small style="color: red;">{{ error }}</small>
+        {% endfor %}
+      {% endfor %}
+
+      <button type="submit">Create User</button>
+    </form>
+
+    <a href="{% url 'admin_dashboard' %}" class="back-link">← Back to Dashboard</a>
+  </div>
+
+  <!-- Optional Dynamic Password Hint -->
+  <script>
+    const passwordInput = document.querySelector('input[type="password"]');
+    const hint = document.getElementById('password-hint');
+
+    if (passwordInput && hint) {
+      passwordInput.addEventListener('input', () => {
+        const value = passwordInput.value;
+        const isLong = value.length >= 8;
+        const hasNumber = /\d/.test(value);
+        const hasSymbol = /[^A-Za-z0-9]/.test(value);
+
+        let feedback = [];
+        if (!isLong) feedback.push("at least 8 characters");
+        if (!hasNumber) feedback.push("a number");
+        if (!hasSymbol) feedback.push("a special symbol");
+
+        hint.textContent = feedback.length === 0
+          ? "Looks good!"
+          : "Include: " + feedback.join(", ");
+        hint.style.color = feedback.length === 0 ? "#16a34a" : "#dc2626";
+      });
+    }
+  </script>
+
+</body>
+</html>

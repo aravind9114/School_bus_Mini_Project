@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Select Role | School Transport Management System</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f4f6f8;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 26px;
+            margin-bottom: 30px;
+            font-weight: 600;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .role-container {
+            background: #ffffff;
+            padding: 40px 35px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-bottom: 25px;
+            font-weight: 500;
+            color: #34495e;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .role-btn {
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            border: 1px solid #dcdcdc;
+            border-radius: 6px;
+            background: #ecf0f1;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .role-btn:hover {
+            background: #dfe6e9;
+            transform: translateY(-1px);
+        }
+
+        .role-btn i {
+            font-size: 17px;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            font-size: 14px;
+            color: #7f8c8d;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 22px;
+            }
+
+            .role-container {
+                padding: 30px 25px;
+            }
+
+            .role-btn {
+                font-size: 15px;
+            }
+        }
+    </style>
+
+    <!-- FontAwesome for icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <h1>Welcome to School Transport Management System</h1>
+
+    <div class="role-container">
+        <h2>Select Your Role</h2>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="role" value="admin" class="role-btn">
+                <i class="fas fa-user-shield"></i> Admin
+            </button>
+            <button type="submit" name="role" value="driver" class="role-btn">
+                <i class="fas fa-bus"></i> Driver
+            </button>
+            <button type="submit" name="role" value="parent" class="role-btn">
+                <i class="fas fa-user"></i> Parent
+            </button>
+        </form>
+    </div>
+
+ 
+</body>
+</html>

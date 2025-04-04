@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Parent Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      display: flex;
+      background: #f8f9fa;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: 240px;
+      background: #2c3e50;
+      color: #fff;
+      padding: 30px 20px;
+      position: fixed;
+      height: 100%;
+    }
+    .sidebar h2 {
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 30px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      padding-bottom: 10px;
+    }
+    .sidebar a {
+      display: block;
+      color: white;
+      text-decoration: none;
+      padding: 12px 15px;
+      margin: 10px 0;
+      border-radius: 6px;
+      background: #34495e;
+      text-align: center;
+      transition: background 0.3s ease;
+    }
+    .sidebar a:hover {
+      background: #1abc9c;
+    }
+
+    .content {
+      margin-left: 260px;
+      padding: 30px;
+      width: 100%;
+      background: #7eb8f3;
+
+    }
+
+    h2, h3 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+
+    .student-info {
+      background: #fff;
+      border-left: 5px solid #3498db;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-top: 8px;
+      background-color: #fdfdfd;
+    }
+
+    select, button {
+      padding: 10px 14px;
+      font-size: 15px;
+      margin-top: 12px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    select {
+      width: 220px;
+      background-color: #fff;
+    }
+
+    button {
+      background-color: #27ae60;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #2ecc71;
+    }
+
+    #busLocation {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    #viewOnMap {
+      display: none;
+      margin-top: 10px;
+      padding: 10px 16px;
+      background: #e74c3c;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      display: inline-block;
+    }
+
+    #viewOnMap:hover {
+      background: #c0392b;
+    }
+
+    a[href="{% url 'view_feedback' %}"] {
+      display: inline-block;
+      background: #2980b9;
+      color: white;
+      padding: 10px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      margin-top: 10px;
+      transition: 0.3s;
+    }
+
+    a[href="{% url 'view_feedback' %}"]:hover {
+      background: #3498db;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2>Parent Panel</h2>
+    <a href="{% url 'logout' %}">Logout</a>
+  </div>
+
+  <div class="content">
+    <h2 style="text-align: center;">Welcome, Parent</h2>
+
+    <!-- Feedback Section -->
+    <h3>Submit Feedback</h3>
+    <form action="{% url 'submit_feedback' %}" method="POST">
+      {% csrf_token %}
+      <textarea name="message" rows="4" placeholder="Enter your feedback here..." required></textarea>
+      <button type="submit">Submit</button>
+    </form>
+
+    <!-- View Previous Feedback -->
+    <h3>View Feedback</h3>
+    <a href="{% url 'view_feedback' %}">View My Feedback</a>
+
+    <!-- Children Section -->
+    <h3>Your Children</h3>
+    {% for student in students %}
+      <div class="student-info">
+        <p>👦 Student: <strong>{{ student.name }}</strong></p>
+        <p>🚌 Bus Number: <strong>{{ student.bus_number }}</strong></p>
+
+        {% for record in attendance_records %}
+          {% if record.student.id == student.id %}
+            <p>📅 Attendance: <strong>{{ record.status }}</strong></p>
+          {% endif %}
+        {% empty %}
+          <p>📅 Attendance: Not available</p>
+        {% endfor %}
+      </div>
+    {% endfor %}
+
+    <!-- Bus Tracker -->
+    <h3>Bus Tracker</h3>
+    <label for="busSelect">Select Bus:</label><br>
+    <select id="busSelect" name="bus_number">
+      <option value="">Select Bus</option>
+      {% for bus in buses %}
+        <option value="{{ bus }}">{{ bus }}</option>
+      {% endfor %}
+    </select><br>
+
+    <button onclick="fetchLocation()">Get Location</button>
+    <p id="busLocation">Bus location will be displayed here.</p>
+    <a id="viewOnMap" href="#" target="_blank">View on Google Maps</a>
+  </div>
+
+  <script>
+    function fetchLocation() {
+      let busNumber = document.getElementById("busSelect").value;
+      if (!busNumber) {
+        alert("Please select a bus number.");
+        return;
+      }
+
+      fetch(`/get-location/${busNumber}/`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.latitude && data.longitude) {
+            document.getElementById("busLocation").innerHTML =
+              `Bus Location: ${data.location_name} <br>Last Updated: ${data.last_updated}`;
+
+            let googleMapsURL = `https://www.google.com/maps?q=${data.latitude},${data.longitude}`;
+            let viewOnMapBtn = document.getElementById("viewOnMap");
+            viewOnMapBtn.href = googleMapsURL;
+            viewOnMapBtn.style.display = "inline-block";
+          } else {
+            document.getElementById("busLocation").innerText = "Location not available.";
+            document.getElementById("viewOnMap").style.display = "none";
+          }
+        })
+        .catch(error => {
+          document.getElementById("busLocation").innerText = "Error fetching location.";
+          console.error("Error:", error);
+        });
+    }
+  </script>
+
+</body>
+</html>

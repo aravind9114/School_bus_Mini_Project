@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            display: flex;
+            background: #f4f6f8;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #fff;
+            padding-bottom: 10px;
+            font-size: 22px;
+        }
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            text-decoration: none;
+            background: #34495e;
+            border-radius: 6px;
+            transition: background 0.3s ease;
+            font-size: 15px;
+        }
+        .sidebar a:hover {
+            background: #1abc9c;
+        }
+        .content {
+            margin-left: 270px;
+            padding: 30px 40px;
+            width: calc(100% - 270px);
+            background: #7eb8f3;
+        }
+        h2, h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background: #2980b9;
+            color: white;
+            font-weight: 500;
+        }
+        tr:nth-child(even) {
+            background: #f8f8f8;
+        }
+        select, button {
+            padding: 10px 14px;
+            margin: 10px 10px 20px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        select {
+            width: 220px;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background-color: #2ecc71;
+        }
+        #busLocation {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        #viewOnMap {
+            display: none;
+            padding: 8px 15px;
+            background: #e74c3c;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        #viewOnMap:hover {
+            background: #c0392b;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .content {
+                margin-left: 0;
+                width: 100%;
+                padding: 20px;
+                background: #7eb8f3;
+            }
+            table, th, td {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <a href="{% url 'manage_feedback' %}">Manage Feedback</a>
+        <a href="{% url 'add_user' %}">Add Driver/Parent</a>
+        <a href="{% url 'add_student' %}">Add Student</a>
+        <a href="{% url 'logout' %}">Logout</a>
+    </div>
+
+    <div class="content">
+        <h2 style="text-align: center;">Welcome, Admin</h2>
+
+        <h3>Users</h3>
+        <table>
+            <tr><th>Username</th><th>Role</th><th>Bus Number</th><th>Actions</th></tr>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.role }}</td>
+                <td>{{ user.bus_number }}</td>
+                <td><button style="background: #7eb8f3"><a style="text-decoration: none" href="{% url 'delete_user' user.id %}">Delete</a></button></td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h3>Bus Tracker</h3>
+        <label for="busSelect">Select Bus:</label>
+        <select id="busSelect">
+            <option value="">--Select Bus--</option>
+            {% for driver in drivers %}
+                <option value="{{ driver.bus_number }}">{{ driver.bus_number }}</option>
+            {% endfor %}
+        </select>
+
+        <button onclick="fetchLocation()">Get Location</button>
+
+        <p id="busLocation">Bus location will be displayed here.</p>
+        <a id="viewOnMap" href="#" target="_blank">View on Google Maps</a>
+
+        <h3>Attendance Records</h3>
+        <table>
+            <tr><th>Student</th><th>Driver</th><th>Date</th><th>Status</th></tr>
+            {% for record in attendance_records %}
+            <tr>
+                <td>{{ record.student.name }}</td>
+                <td>{{ record.driver.username }}</td>
+                <td>{{ record.date }}</td>
+                <td>{{ record.status }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h3>Students</h3>
+        <table>
+            <tr>
+                <th>Student Name</th>
+                <th>Parent</th>
+                <th>Driver</th>
+                <th>Bus Number</th>
+            </tr>
+            {% for student in students %}
+            <tr>
+                <td>{{ student.name }}</td>
+                <td>{{ student.parent.username }}</td>
+                <td>{{ student.driver.username|default:"No Driver Assigned" }}</td>
+                <td>{{ student.bus_number }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No students found.</td></tr>
+            {% endfor %}
+        </table>
+
+        
+    </div>
+
+    <script>
+        function fetchLocation() {
+            let busNumber = document.getElementById("busSelect").value;
+            if (!busNumber) {
+                alert("Please select a bus number.");
+                return;
+            }
+
+            fetch(`/get-location/${busNumber}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.latitude && data.longitude) {
+                        document.getElementById("busLocation").innerHTML = 
+                            `Bus Location: ${data.location_name} <br> 
+                            Last Updated: ${data.last_updated}`;
+
+                        let googleMapsURL = `https://www.google.com/maps?q=${data.latitude},${data.longitude}`;
+                        let viewOnMapBtn = document.getElementById("viewOnMap");
+                        viewOnMapBtn.href = googleMapsURL;
+                        viewOnMapBtn.style.display = "inline-block";
+                    } else {
+                        document.getElementById("busLocation").innerText = "Location not available.";
+                        document.getElementById("viewOnMap").style.display = "none";
+                    }
+                })
+                .catch(error => {
+                    document.getElementById("busLocation").innerText = "Error fetching location.";
+                    console.error("Error:", error);
+                });
+        }
+    </script>
+
+</body>
+</html>

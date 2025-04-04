@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Dashboard</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            display: flex;
+            background: #f4f4f4;
+        }
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            position: fixed;
+        }
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid white;
+            padding-bottom: 10px;
+        }
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 10px;
+            margin: 10px 0;
+            text-decoration: none;
+            background: #34495e;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .sidebar a:hover {
+            background: #1abc9c;
+        }
+        .content {
+            margin-left: 270px;
+            padding: 20px;
+            width: 100%;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #2ecc71;
+        }
+        .status {
+            font-weight: bold;
+            color: #e74c3c;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>Driver Panel</h2>
+        <a href="{% url 'mark_attendance' %}">Mark Attendance</a>
+        <a href="{% url 'logout' %}">Logout</a>
+    </div>
+
+    <div class="content">
+        <h2>Welcome, Driver</h2>
+
+        <div class="info-box">
+            <p>🚍 Your location is being updated every 5 minutes.</p>
+            <p class="status" id="locationStatus">Waiting for update...</p>
+        </div>
+    </div>
+
+    <script>
+        function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+function getAddressFromCoordinates(lat, lon) {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.display_name) {
+                document.getElementById("locationStatus").innerText = `📍 ${data.display_name}`;
+            } else {
+                document.getElementById("locationStatus").innerText = "📍 Location found, but no name available.";
+            }
+        })
+        .catch(error => {
+            console.error("Reverse geocoding failed:", error);
+            document.getElementById("locationStatus").innerText = "❌ Failed to get location name.";
+        });
+}
+        function startLocationUpdates() {
+            if (navigator.geolocation) {
+                setInterval(() => {
+                    navigator.geolocation.getCurrentPosition(position => {
+                        fetch("/update-location/", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
+                            body: JSON.stringify({ latitude: position.coords.latitude, longitude: position.coords.longitude })
+                        }).then(() => {
+                            document.getElementById("locationStatus").innerText = "✅ Location Updated!";
+                            setTimeout(() => {
+                                document.getElementById("locationStatus").innerText = "Waiting for next update...";
+                            }, 3000);
+                        });
+                    });
+                }, 5000);  // ✅ Updates location every 5 seconds now
+            } else {
+                document.getElementById("locationStatus").innerText = "❌ Geolocation not supported.";
+            }
+        }
+    
+        startLocationUpdates();
+    </script>
+    
+
+</body>
+</html>

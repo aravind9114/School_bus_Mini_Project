@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Student</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(120deg, #9c9aff,#7eb8f3);
+      padding: 20px;
+    }
+    .form-container {
+      background: #fff;
+      padding: 35px 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 420px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #333;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      margin-top: 15px;
+      font-weight: 600;
+      color: #444;
+    }
+    input, select {
+      margin-top: 8px;
+      padding: 10px 12px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: #f9f9f9;
+    }
+    button {
+      margin-top: 25px;
+      padding: 12px;
+      background-color: #27ae60;
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background-color: #2ecc71;
+    }
+    .back-link {
+      display: inline-block;
+      text-align: center;
+      margin-top: 20px;
+      background: #e74c3c;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: background 0.3s ease;
+      width: 100%;
+    }
+    .back-link:hover {
+      background: #c0392b;
+    }
+    @media (max-width: 500px) {
+      .form-container {
+        padding: 25px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>Add Student</h2>
+    <form method="post">
+      {% csrf_token %}
+
+      <label for="name">Student Name:</label>
+      <input type="text" name="name" required>
+
+      <label for="parent">Select Parent:</label>
+      <select name="parent" required>
+        {% for parent in parents %}
+          <option value="{{ parent.id }}">{{ parent.username }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="driver">Select Driver (Optional):</label>
+      <select name="driver" id="driver-select">
+        <option value="">-- No Driver --</option>
+        {% for driver in drivers %}
+          <option value="{{ driver.id }}" data-bus-number="{{ driver.bus_number }}">{{ driver.username }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="bus_number">Bus Number:</label>
+      <input type="text" name="bus_number" id="bus-number" required>
+
+      <button type="submit">Create Student</button>
+    </form>
+
+    <a href="{% url 'admin_dashboard' %}" class="back-link">Back to Dashboard</a>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const driverSelect = document.getElementById("driver-select");
+      const busNumberInput = document.getElementById("bus-number");
+
+      driverSelect.addEventListener("change", function () {
+        const selectedDriver = driverSelect.options[driverSelect.selectedIndex];
+        const busNumber = selectedDriver.getAttribute("data-bus-number");
+
+        if (busNumber) {
+          busNumberInput.value = busNumber;
+        } else {
+          busNumberInput.value = "";
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
